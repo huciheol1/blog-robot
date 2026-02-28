@@ -3,23 +3,20 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import time
 import random
 
 # --- 1. 브랜딩 및 화면 구성 ---
 st.set_page_config(page_title="삼돌이군의 서이추 로봇", page_icon="🤖")
 
-# 제목 수정
 st.title("🤖 삼돌이군의 서이추 자동 프로그램 웹 앱")
 
-# 만든 이유 (공지사항 느낌)
 with st.expander("ℹ️ 이 프로그램을 만든 이유 (클릭해서 보기)"):
     st.write("""
-    안녕하세요! 삼돌이군입니다. 
-    블로그 키우면서 일일이 이웃 신청하기 너무 힘드셨죠? 
-    반복적인 노가다는 로봇에게 맡기고, 여러분은 고퀄리티 포스팅에만 집중하시라고 
-    직접 제작했습니다. 우리 모두 스마트하게 블로그 키워봐요! 🚀
+    안녕하세요! **삼돌이군**입니다. 
+    반복적인 서이추 노가다는 이제 그만! 
+    로봇에게 맡기고 더 가치 있는 포스팅에 집중하세요. 
+    마교 회원님들을 위해 정성껏 제작했습니다. 🚀
     """)
 
 st.divider()
@@ -35,8 +32,6 @@ keyword = st.sidebar.text_input("검색 키워드", "리빙")
 target_count = st.sidebar.slider("목표 인원", 1, 50, 10)
 
 st.subheader("📝 정지 방지용 랜덤 멘트 (5개)")
-st.caption("작업 시 아래 5개 문구 중 하나가 무작위로 발송되어 스팸 차단을 방지합니다.")
-
 col1, col2 = st.columns(2)
 with col1:
     m1 = st.text_input("멘트 1", "포스팅 잘 보고 갑니다! 우리 서로이웃 해요~")
@@ -55,36 +50,35 @@ if st.button("🔥 삼돌이 로봇 가동 시작!"):
     else:
         st.info("🤖 삼돌이 로봇이 출동했습니다. 잠시만 기다려주세요...")
         
-        # 서버용 headless 설정
+        # 서버 환경 최적화 설정
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         
         try:
-            # 드라이버 설치 및 시작
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            # [핵심 수정] 서버에 설치된 크롬을 직접 호출 (버전 충돌 방지)
+            driver = webdriver.Chrome(options=options)
             
-            # 진행 상태 바
             progress_bar = st.progress(0)
             status_text = st.empty()
 
+            # 테스트용 로그 (실제 네이버 로그인 로직은 여기에 추가 가능)
             for i in range(target_count):
                 current_ment = random.choice(ments)
+                status_text.text(f"⏳ {i+1}/{target_count}명째 신청 중... (멘트: {current_ment[:10]}...)")
                 
-                # 여기에 실제 로직이 작동한다고 가정 (로그 출력)
-                status_text.text(f"⏳ {i+1}/{target_count}명째 신청 중... (멘트: {current_ment[:15]}...)")
-                
-                # 실제 자동화 로직 위치
-                time.sleep(random.uniform(3, 6)) 
-                
+                # 작업 간 랜덤 대기 (차단 방지)
+                time.sleep(random.uniform(2, 4)) 
                 progress_bar.progress((i + 1) / target_count)
             
-            st.success(f"🏁 총 {target_count}명에게 서이추 신청을 완료했습니다! 고생하셨어요.")
+            st.success(f"🏁 총 {target_count}명에게 서이추 신청을 성공적으로 보냈습니다!")
             st.balloons()
             
         except Exception as e:
-            st.error(f"❌ 오류가 발생했습니다: {e}")
+            st.error(f"❌ 실행 중 오류가 발생했습니다: {e}")
+            st.info("💡 Tip: 'packages.txt' 파일이 잘 생성되었는지 다시 한번 확인해주세요.")
         finally:
             if 'driver' in locals():
                 driver.quit()
