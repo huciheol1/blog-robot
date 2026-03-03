@@ -1,3 +1,2 @@
 chromium
-chromium-driver
 libglib2.0-0
